@@ -2,6 +2,7 @@ package com.abc;
 
 import com.abc.reader.InputFileReader;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 
 public class ConcordanceGenerator {
@@ -9,15 +10,24 @@ public class ConcordanceGenerator {
     private static final String WORD_DELEMETER= " ";
     private static final String EMPTY_STRING="";
     private static final String REGEX="[.,?:!]";
-    private static final Set<String> ESCAPE_WORDS=new HashSet<>(Arrays.asList("i.e."));
+    private static final Set<String> ESCAPE_WORDS=new HashSet<>(Collections.singletonList("i.e."));
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         Scanner scanner = new Scanner(System.in);
         String filePath= scanner.nextLine();
-        //TODO validate for file path
+
+        var concordance=new ConcordanceGenerator().generateConcordance(filePath);
+        for(String line: concordance){
+            System.out.println(line);
+        }
+    }
+
+    public List<String> generateConcordance(String filePath) throws FileNotFoundException {
+        //TODO validate for filePath
         List<String> lines= InputFileReader.readFileContents(filePath);
 
         Map<String,Word> wordsMap= new TreeMap<>();
+        List<String> response= new LinkedList<>();
         int sentence=1;
         for(String line: lines){
             if(line.trim().equals(EMPTY_STRING)) continue;
@@ -26,8 +36,7 @@ public class ConcordanceGenerator {
                 word=word.toLowerCase(Locale.ENGLISH);
                 boolean shouldIncreaseSentenceCounter=false;
                 //TODO write regex instead individual checks for .?!
-                if(!ESCAPE_WORDS.contains(word) && (word.indexOf(".")!=-1) || word.indexOf("!")!=-1
-                || word.indexOf("?")!=-1){
+                if(!ESCAPE_WORDS.contains(word) && (word.contains(".")) || word.contains("!")|| word.contains("?")){
                     shouldIncreaseSentenceCounter=true;
                 }
                 if(!ESCAPE_WORDS.contains(word)){
@@ -44,8 +53,9 @@ public class ConcordanceGenerator {
             }
         }
         for(String key: wordsMap.keySet()){
-            System.out.println(wordsMap.get(key).toString());
+            response.add(wordsMap.get(key).toString());
         }
+        return response;
     }
 
     static class Word{
